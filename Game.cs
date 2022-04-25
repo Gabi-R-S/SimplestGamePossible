@@ -26,7 +26,7 @@ namespace SimplestGamePossible
 
             renderTexture = new RenderTexture(Size.X,Size.Y);
             window.Closed += (object? sender, EventArgs args) => { window.Close(); };
-           window.Resized+= (object? sender, SizeEventArgs args) => 
+            window.Resized+= (object? sender, SizeEventArgs args) => 
            {   var xGrowth = (float)args.Width/(float)Size.X;
                var yGrowth = (float)args.Height / (float)Size.Y;
 
@@ -38,6 +38,7 @@ namespace SimplestGamePossible
                sprite.Position = (Vector2f)screenSize / 2 - (Vector2f)newSize / 2;
                sprite.Scale= new Vector2f(Math.Min(xGrowth, yGrowth), Math.Min(xGrowth, yGrowth));
            };
+            window.GainedFocus += (object? sender, EventArgs args) => { window.RequestFocus(); };
             sprite = new Sprite();
             var xGrowth = (float)window.Size.X / (float)Size.X;
             var yGrowth = (float)window.Size.Y / (float)Size.Y;
