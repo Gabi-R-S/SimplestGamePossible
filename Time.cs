@@ -12,6 +12,7 @@ namespace SimplestGamePossible
         static float frameTime;
         static double gameTime;
         public static float FrameTime { get => frameTime; }
+        public static float GameTime { get => (float)gameTime; }
         static Time() 
         {
             clock = new Clock();

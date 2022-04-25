@@ -21,16 +21,16 @@ namespace SimplestGamePossible
         const int numberOfClouds = 10;
 
         readonly float killDistanceSqr;
-        
-        const float jumpTime=2.0f;
+        const float jumpTimeIncrease =1.1f;
+        float jumpTime=2.0f;
         float jumpTimeCounter;
-        const float jumpHeight = 350;
+        float jumpHeight = 350;
         const float jumpRotationBoost = 1.5f;
         float averageScrollSpeed;
         float rotationSpeed;
 
-        const float increase =1.05f;
-
+        const float increase =1.1f;
+        bool increaseJump;
         uint points;
 
         void RandomizeBackGround() { //setRandomPositionFor Background Decorations
@@ -56,7 +56,7 @@ namespace SimplestGamePossible
             {
                 if (hill.depth > hills[i].depth && hill.depth < hills[i + 1].depth) 
                 {
-                    hills.Insert(i,hill);
+                    hills.Insert(i+1,hill);
                     return;
                 }
             }
@@ -86,12 +86,14 @@ namespace SimplestGamePossible
                     if (jumpTimeCounter == 0) 
                     {
                         jumpTimeCounter = jumpTime;
+                        SoundManager.PlaySound(SoundType.Jump); 
                     }
                     break;
                 case Keyboard.Key.Space:
                     if (jumpTimeCounter == 0)
                     {
                         jumpTimeCounter = jumpTime;
+                        SoundManager.PlaySound(SoundType.Jump);
                     }
                     break;
                 default:
@@ -104,12 +106,13 @@ namespace SimplestGamePossible
                 LevelSprites.enemy.Position = NextEnemyPosition();
                 playerBasePos = new Vector2f(Game.Size.X / 5, Game.Size.Y - LevelSprites.ground.Texture.Size.Y - LevelSprites.player.Texture.Size.Y / 2 + LevelSprites.player.Texture.Size.Y / 6.5f);
                 LevelSprites.player.Position = playerBasePos;
-
-            depthShader = new Shader(null,null,"Assets/Shaders/Shader.glsl");
+            jumpTime = 2.0f;
+            jumpHeight = 350;
+            depthShader = new Shader(null,null,"Assets/Shaders/DepthShader.glsl");
 
             hills = new List<Hill>();
             FillHills();
-            killDistanceSqr = LevelSprites.player.Texture.Size.Y* LevelSprites.player.Texture.Size.Y / 20; 
+            killDistanceSqr = LevelSprites.player.Texture.Size.Y* LevelSprites.player.Texture.Size.Y / 4; 
             
             clouds = new List<Cloud>();
             FillClouds();
@@ -123,21 +126,26 @@ namespace SimplestGamePossible
         {
             LevelSprites.background.Draw(target,states);
             //draw hills
-            foreach (Hill hill in hills) 
-            {
-                RenderStates newState= states;
-                newState.Transform=states.Transform* hill.Transform;
-                LevelSprites.backgroundMountain.Draw(target, newState);
-            }
             foreach (Cloud cld in clouds)
             {
                 RenderStates newState = states;
                 newState.Transform = states.Transform * cld.Transform;
                 LevelSprites.cloud.Draw(target, newState);
             }
+            for (var x = 0; x < hills.Count; x++)
+            { 
+                Hill hill = hills[x];
+                RenderStates newState = states;
+                newState.Transform = states.Transform * hill.Transform;
+                depthShader.SetUniform("depth", hill.depth);
+                newState.Shader = depthShader;
+                LevelSprites.backgroundMountain.Draw(target, newState);
+            }
+
             LevelSprites.ground.Draw(target,states);
             LevelSprites.enemy.Draw(target,states);
             LevelSprites.player.Draw(target,states);
+            LevelSprites.pointText.Draw(target, states);
         }
         
         public void Update() 
@@ -146,6 +154,12 @@ namespace SimplestGamePossible
             if (jumpTimeCounter==0) 
             {
                 LevelSprites.player.Rotation += Time.FrameTime * rotationSpeed;
+                if (increaseJump) 
+                {
+                    increaseJump = false;
+                    jumpTime /= jumpTimeIncrease;
+                    jumpHeight *= jumpTimeIncrease * jumpTimeIncrease;
+                }
             }
             else 
             {
@@ -183,10 +197,13 @@ namespace SimplestGamePossible
             {
                 LevelSprites.enemy.Position=NextEnemyPosition();
                 points++;
+
+                LevelSprites.pointText.DisplayedString = points.ToString();
                 averageScrollSpeed *= increase;
                 rotationSpeed *= increase;
+                increaseJump = true;
             }
-            var dist = LevelSprites.enemy.Position - LevelSprites.player.Position;
+            var dist = LevelSprites.enemy.Position+(Vector2f)LevelSprites.enemy.Texture.Size/2 - LevelSprites.player.Position;
             var distancesqr= dist.X*dist.X + dist.Y*dist.Y;
 
             if (distancesqr <killDistanceSqr) 
@@ -208,6 +225,14 @@ namespace SimplestGamePossible
             LevelSprites.enemy.Position = NextEnemyPosition();
             averageScrollSpeed = 350;
             rotationSpeed = 150;
+            LevelSprites.pointText.DisplayedString=points.ToString();
+            LevelSprites.pointText.Position = new Vector2f(Game.Size.X / 10 * 9, Game.Size.Y / 20);
+
+            LevelSprites.pointText.CharacterSize = 110;
+            jumpTime = 2.0f;
+            jumpHeight = 350;
+
+            SoundManager.SetMusic(MusicState.Game);
         }
     }
 }

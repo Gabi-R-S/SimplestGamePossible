@@ -17,6 +17,8 @@ namespace SimplestGamePossible
         public static Sprite cloud;
         public static Sprite background;
         public static Sprite playButton;
+        public static Text pointText;
+        public static Sprite restartButton;
         public static void SetUp() {
             Texture tex = new Texture("Assets/Images/Player.png");
             player = new Sprite(tex);
@@ -47,6 +49,16 @@ namespace SimplestGamePossible
             tex = new Texture("Assets/Images/PlayButton.png");
             playButton = new Sprite(tex);
             tex.Smooth = true;
+
+            tex = new Texture("Assets/Images/RestartButton.png");
+            restartButton = new Sprite(tex);
+            tex.Smooth = true;
+            restartButton.Origin = (Vector2f)tex.Size / 2;
+
+            Font font = new Font("Assets/Fonts/BROADW.TTF");
+            pointText = new Text();
+            pointText.Font = font;
+            pointText.FillColor = new Color(77, 43, 50, 255);
         }
     }
 }
